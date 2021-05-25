@@ -965,11 +965,12 @@ GNEApplicationWindow::handleEvent_NetworkLoaded(GUIEvent* e) {
         // iterate over every additional file
         for (const auto& additionalFile : additionalFiles) {
             WRITE_MESSAGE("Loading additionals and shapes from '" + additionalFile + "'");
-            GNEAdditionalHandler additionalHandler(additionalFile, myNet);
+            // declare additional handler
+            GNEAdditionalHandler additionalHandler(myNet, additionalFile, true);
             // disable validation for additionals
             XMLSubSys::setValidation("never", "auto", "auto");
             // Run parser
-            if (!XMLSubSys::runParser(additionalHandler, additionalFile, false)) {
+            if (!additionalHandler.parse()) {
                 WRITE_ERROR("Loading of " + additionalFile + " failed.");
             }
             // disable validation for additionals
@@ -2796,11 +2797,11 @@ GNEApplicationWindow::onCmdOpenAdditionals(FXObject*, FXSelector, void*) {
         // disable validation for additionals
         XMLSubSys::setValidation("never", "auto", "auto");
         // Create additional handler
-        GNEAdditionalHandler additionalHandler(file, myNet);
+        GNEAdditionalHandler additionalHandler(myNet, file, true);
         // begin undoList operation
         myUndoList->p_begin("Loading additionals from '" + file + "'");
-        // Run parser for additionals
-        if (!XMLSubSys::runParser(additionalHandler, file, false)) {
+        // Run parser
+        if (!additionalHandler.parse()) {
             WRITE_ERROR("Loading of " + file + " failed.");
         }
         // end undoList operation and update view
@@ -2823,13 +2824,13 @@ GNEApplicationWindow::onCmdReloadAdditionals(FXObject*, FXSelector, void*) {
     // disable validation for additionals
     XMLSubSys::setValidation("never", "auto", "auto");
     // Create additional handler
-    GNEAdditionalHandler additionalHandler(file, myNet);
+    GNEAdditionalHandler additionalHandler(myNet, file, true);
     // begin undoList operation
     myUndoList->p_begin("Reloading additionals from '" + file + "'");
     // clear additionals
     myNet->clearAdditionalElements(myUndoList);
     // Run parser for additionals
-    if (!XMLSubSys::runParser(additionalHandler, file, false)) {
+    if (!additionalHandler.parse()) {
         WRITE_ERROR("Reloading of " + file + " failed.");
     }
     // end undoList operation and update view

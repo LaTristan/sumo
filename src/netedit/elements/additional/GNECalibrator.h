@@ -49,10 +49,14 @@ public:
      * @param[in] name Calibrator name
      * @param[in] output The output file for writing calibrator information
      * @param[in] routeprobe route probe vinculated with this calibrator
-     * @param[in] calibratorRoutes vector with the calibratorRoutes of calibrator
-     * @param[in] calibratorFlows vector with the calibratorFlows of calibrator
+     * @param[in] jamThreshold A threshold value to detect and clear unexpected jamming
+     * @param[in] vTypes space separated list of vehicle type ids to consider
+     * @param[in] parameters generic parameters
+     * @param[in] blockMovement enable or disable additional movement
      */
-    GNECalibrator(const std::string& id, GNENet* net, GNEEdge* edge, double pos, SUMOTime frequency, const std::string& name, const std::string& output, const std::string& routeprobe);
+    GNECalibrator(const std::string& id, GNENet* net, GNEEdge* edge, double pos, SUMOTime frequency, const std::string& name, const std::string& output, 
+                  const std::string& routeprobe, const double jamThreshold, const std::string &vTypes, const std::map<std::string, std::string> &parameters, 
+                  bool blockMovement);
 
     /**@brief Constructor using lane
      * @param[in] id The storage of gl-ids to get the one for this lane representation from
@@ -63,10 +67,14 @@ public:
      * @param[in] name Calibrator name
      * @param[in] routeprobe route probe vinculated with this calibrator
      * @param[in] output The output file for writing calibrator information
-     * @param[in] calibratorRoutes vector with the calibratorRoutes of calibrator
-     * @param[in] calibratorFlows vector with the calibratorFlows of calibrator
+     * @param[in] jamThreshold A threshold value to detect and clear unexpected jamming
+     * @param[in] vTypes space separated list of vehicle type ids to consider
+     * @param[in] parameters generic parameters
+     * @param[in] blockMovement enable or disable additional movement
      */
-    GNECalibrator(const std::string& id, GNENet* net, GNELane* lane, double pos, SUMOTime frequency, const std::string& name, const std::string& output, const std::string& routeprobe);
+    GNECalibrator(const std::string& id, GNENet* net, GNELane* lane, double pos, SUMOTime frequency, const std::string& name, const std::string& output, 
+                  const std::string& routeprobe, const double jamThreshold, const std::string &vTypes, const std::map<std::string, std::string> &parameters, 
+                  bool blockMovement);
 
     /// @brief Destructor
     ~GNECalibrator();
@@ -157,6 +165,12 @@ protected:
 
     /// @brief ID to current RouteProbe
     std::string myRouteProbe;
+
+    /// @brief jamThreshold
+    double myJamThreshold;
+    
+    /// @brief vTypes
+    std::string myVTypes;
 
     /// @brief extra calibrator geometries
     std::vector<GNEGeometry::Geometry> myEdgeCalibratorGeometries;

@@ -1627,9 +1627,9 @@ GNENet::computeNetwork(GNEApplicationWindow* window, bool force, bool volatileOp
     // load additionals if was recomputed with volatile options
     if (additionalPath != "") {
         // Create additional handler
-        GNEAdditionalHandler additionalHandler(additionalPath, this);
+        GNEAdditionalHandler additionalHandler(this, additionalPath, false);
         // Run parser
-        if (!XMLSubSys::runParser(additionalHandler, additionalPath, false)) {
+        if (!additionalHandler.parse()) {
             WRITE_MESSAGE("Loading of " + additionalPath + " failed.");
         }
         // clear myEdgesAndNumberOfLanes after reload additionals
@@ -2435,6 +2435,29 @@ GNENet::retrieveAdditionals(bool onlySelected) const {
         }
     }
     return result;
+}
+
+
+GNEAdditional*
+GNENet::retrieveRerouterInterval(const std::string& rerouterID, const SUMOTime begin, const SUMOTime end) const {
+    // first retrieve rerouter
+    GNEAdditional* rerouter = retrieveAdditional(SUMO_TAG_REROUTER, rerouterID);
+    // parse begin and end
+    const std::string beginStr = time2string(begin);
+    const std::string endStr = time2string(end);
+    // now iterate over all children and check begin and end
+    for (const auto &interval : rerouter->getChildAdditionals()) {
+        // check tag
+        if (interval->getTagProperty().getTag() == SUMO_TAG_INTERVAL) {
+            // check begin and end
+            if ((interval->getAttribute(SUMO_ATTR_BEGIN) == beginStr) &&
+                (interval->getAttribute(SUMO_ATTR_END) == endStr)) {
+                return interval;
+            }
+        }
+    }
+    // throw exception
+    throw ProcessError("Attempted to retrieve non-existant rerouter interval");
 }
 
 

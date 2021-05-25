@@ -37,26 +37,30 @@
 // member method definitions
 // ===========================================================================
 
-GNEDetector::GNEDetector(const std::string& id, GNENet* net, GUIGlObjectType type, SumoXMLTag tag,
-                         double pos, const std::string& freq, const std::string& filename, const std::string& vehicleTypes,
-                         const std::string& name, bool friendlyPos, bool blockMovement, const std::vector<GNELane*>& parentLanes) :
-    GNEAdditional(id, net, type, tag, name, blockMovement, {}, {}, parentLanes, {}, {}, {}, {}, {}),
-              myPositionOverLane(pos),
-              myFreq(freq),
-              myFilename(filename),
-              myVehicleTypes(vehicleTypes),
-myFriendlyPosition(friendlyPos) {
+GNEDetector::GNEDetector(const std::string& id, GNENet* net, GUIGlObjectType type, SumoXMLTag tag, double pos, const std::string& freq, 
+        const std::vector<GNELane*>& parentLanes, const std::string& filename, const std::string& vehicleTypes, const std::string& name, 
+        bool friendlyPos, const std::map<std::string, std::string> &parameters, bool blockMovement) :
+    GNEAdditional(id, net, type, tag, name, 
+        {}, {}, parentLanes, {}, {}, {}, {}, {},
+        parameters, blockMovement),
+    myPositionOverLane(pos),
+    myFreq(freq),
+    myFilename(filename),
+    myVehicleTypes(vehicleTypes),
+    myFriendlyPosition(friendlyPos) {
 }
 
 
-GNEDetector::GNEDetector(GNEAdditional* additionalParent, GNENet* net, GUIGlObjectType type, SumoXMLTag tag,
-                         double pos, const std::string& freq, const std::string& filename, const std::string& name, bool friendlyPos,
-                         bool blockMovement, const std::vector<GNELane*>& parentLanes) :
-    GNEAdditional(net, type, tag, name, blockMovement, {}, {}, parentLanes, {additionalParent}, {}, {}, {}, {}),
-myPositionOverLane(pos),
-myFreq(freq),
-myFilename(filename),
-myFriendlyPosition(friendlyPos) {
+GNEDetector::GNEDetector(GNEAdditional* additionalParent, GNENet* net, GUIGlObjectType type, SumoXMLTag tag, double pos, const std::string& freq, 
+        const std::vector<GNELane*>& parentLanes, const std::string& filename, const std::string& name, bool friendlyPos, 
+        const std::map<std::string, std::string> &parameters, bool blockMovement) :
+    GNEAdditional(net, type, tag, name, 
+        {}, {}, parentLanes, {additionalParent}, {}, {}, {}, {},
+        parameters, blockMovement),
+    myPositionOverLane(pos),
+    myFreq(freq),
+    myFilename(filename),
+    myFriendlyPosition(friendlyPos) {
 }
 
 
@@ -103,7 +107,7 @@ void
 GNEDetector::splitEdgeGeometry(const double splitPosition, const GNENetworkElement* originalElement,
                                const GNENetworkElement* newElement, GNEUndoList* undoList) {
     // only split geometry of E2 multilane detectors
-    if (myTagProperty.getTag() == SUMO_TAG_E2DETECTOR_MULTILANE) {
+    if (myTagProperty.getTag() == GNE_TAG_E2DETECTOR_MULTILANE) {
         // obtain new list of E2 lanes
         std::string newE2Lanes = getNewListOfParents(originalElement, newElement);
         // update E2 Lanes

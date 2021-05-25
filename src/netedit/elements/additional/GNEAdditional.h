@@ -54,7 +54,6 @@ public:
      * @param[in] type GUIGlObjectType of additional
      * @param[in] tag Type of xml tag that define the additional element (SUMO_TAG_BUS_STOP, SUMO_TAG_REROUTER, etc...)
      * @param[in] name Additional name
-     * @param[in] block movement enable or disable additional movement
      * @param[in] junctionParents vector of junction parents
      * @param[in] edgeParents vector of edge parents
      * @param[in] laneParents vector of lane parents
@@ -63,8 +62,10 @@ public:
      * @param[in] TAZElementParents vector of TAZElement parents
      * @param[in] demandElementParents vector of demand element parents
      * @param[in] genericDataParents vector of generic data parents
+     * @param[in] parameters generic parameters
+     * @param[in] blockMovement enable or disable additional movement
      */
-    GNEAdditional(const std::string& id, GNENet* net, GUIGlObjectType type, SumoXMLTag tag, std::string additionalName, bool blockMovement,
+    GNEAdditional(const std::string& id, GNENet* net, GUIGlObjectType type, SumoXMLTag tag, std::string additionalName, 
                   const std::vector<GNEJunction*>& junctionParents,
                   const std::vector<GNEEdge*>& edgeParents,
                   const std::vector<GNELane*>& laneParents,
@@ -72,14 +73,14 @@ public:
                   const std::vector<GNEShape*>& shapeParents,
                   const std::vector<GNETAZElement*>& TAZElementParents,
                   const std::vector<GNEDemandElement*>& demandElementParents,
-                  const std::vector<GNEGenericData*>& genericDataParents);
+                  const std::vector<GNEGenericData*>& genericDataParents,
+                  const std::map<std::string, std::string> &parameters, bool blockMovement);
 
     /**@brief Constructor for additional with parents
      * @param[in] net pointer to GNENet of this additional element belongs
      * @param[in] type GUIGlObjectType of additional
      * @param[in] tag Type of xml tag that define the additional element (SUMO_TAG_BUS_STOP, SUMO_TAG_REROUTER, etc...)
      * @param[in] name Additional name
-     * @param[in] block movement enable or disable additional movement
      * @param[in] junctionParents vector of junction parents
      * @param[in] edgeParents vector of edge parents
      * @param[in] laneParents vector of lane parents
@@ -88,8 +89,10 @@ public:
      * @param[in] TAZElementParents vector of TAZElement parents
      * @param[in] demandElementParents vector of demand element parents
      * @param[in] genericDataParents vector of generic data parents
-    */
-    GNEAdditional(GNENet* net, GUIGlObjectType type, SumoXMLTag tag, std::string additionalName, bool blockMovement,
+     * @param[in] parameters generic parameters
+     * @param[in] blockMovement enable or disable additional movement
+     */
+    GNEAdditional(GNENet* net, GUIGlObjectType type, SumoXMLTag tag, std::string additionalName,
                   const std::vector<GNEJunction*>& junctionParents,
                   const std::vector<GNEEdge*>& edgeParents,
                   const std::vector<GNELane*>& laneParents,
@@ -97,14 +100,15 @@ public:
                   const std::vector<GNEShape*>& shapeParents,
                   const std::vector<GNETAZElement*>& TAZElementParents,
                   const std::vector<GNEDemandElement*>& demandElementParents,
-                  const std::vector<GNEGenericData*>& genericDataParents);
+                  const std::vector<GNEGenericData*>& genericDataParents,
+                  const std::map<std::string, std::string> &parameters, bool blockMovement);
 
     /// @brief Destructor
-    virtual ~GNEAdditional();
+    ~GNEAdditional();
 
     /**@brief get move operation for the given shapeOffset
-    * @note returned GNEMoveOperation can be nullptr
-    */
+     * @note returned GNEMoveOperation can be nullptr
+     */
     virtual GNEMoveOperation* getMoveOperation(const double shapeOffset) = 0;
 
     /// @brief remove geometry point in the clicked position (Currently unused in shapes)

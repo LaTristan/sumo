@@ -1579,6 +1579,11 @@ GNEAttributeCarrier::fillAdditionals() {
                                               "The end position on the lane (the higher position on the lane) in meters, must be larger than startPos by more than 0.1m");
         myTagProperties[currentTag].addAttribute(attrProperty);
 
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_DEPARTPOS,
+                                              GNEAttributeProperties::STRING | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL | GNEAttributeProperties::UPDATEGEOMETRY,
+                                              "Lane position in that vehicle must depart when leaves parkingArea");
+        myTagProperties[currentTag].addAttribute(attrProperty);
+
         attrProperty = GNEAttributeProperties(SUMO_ATTR_NAME,
                                               GNEAttributeProperties::STRING | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
                                               "Name of " + toString(currentTag));
@@ -1788,7 +1793,7 @@ GNEAttributeCarrier::fillAdditionals() {
                                               "0");
         myTagProperties[currentTag].addAttribute(attrProperty);
     }
-    currentTag = SUMO_TAG_E2DETECTOR_MULTILANE;
+    currentTag = GNE_TAG_E2DETECTOR_MULTILANE;
     {
         // set values of tag
         myTagProperties[currentTag] = GNETagProperties(currentTag,
@@ -2068,7 +2073,7 @@ GNEAttributeCarrier::fillAdditionals() {
         myTagProperties[currentTag].addAttribute(attrProperty);
 
         attrProperty = GNEAttributeProperties(SUMO_ATTR_SPEED,
-                                              GNEAttributeProperties::FLOAT | GNEAttributeProperties::DEFAULTVALUESTATIC,
+                                              GNEAttributeProperties::STRING | GNEAttributeProperties::DEFAULTVALUESTATIC,
                                               "Speed",
                                               "13.89");
         myTagProperties[currentTag].addAttribute(attrProperty);
@@ -2117,6 +2122,17 @@ GNEAttributeCarrier::fillAdditionals() {
                                               GNEAttributeProperties::STRING | GNEAttributeProperties::FILENAME | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
                                               "The output file for writing calibrator information or NULL");
         myTagProperties[currentTag].addAttribute(attrProperty);
+
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_JAM_DIST_THRESHOLD,
+                                              GNEAttributeProperties::FLOAT | GNEAttributeProperties::POSITIVE | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
+                                              "A threshold value to detect and clear unexpected jamming",
+                                              "0.5");
+        myTagProperties[currentTag].addAttribute(attrProperty);
+
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_VTYPES,
+                                              GNEAttributeProperties::STRING | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
+                                              "space separated list of vehicle type ids to consider (empty to affect all types)");
+        myTagProperties[currentTag].addAttribute(attrProperty);
     }
     currentTag = SUMO_TAG_LANECALIBRATOR;
     {
@@ -2162,8 +2178,19 @@ GNEAttributeCarrier::fillAdditionals() {
                                               GNEAttributeProperties::STRING | GNEAttributeProperties::FILENAME | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
                                               "The output file for writing calibrator information or NULL");
         myTagProperties[currentTag].addAttribute(attrProperty);
+
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_JAM_DIST_THRESHOLD,
+                                              GNEAttributeProperties::FLOAT | GNEAttributeProperties::POSITIVE | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
+                                              "A threshold value to detect and clear unexpected jamming",
+                                              "0.5");
+        myTagProperties[currentTag].addAttribute(attrProperty);
+
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_VTYPES,
+                                              GNEAttributeProperties::STRING | GNEAttributeProperties::DEFAULTVALUESTATIC | GNEAttributeProperties::XMLOPTIONAL,
+                                              "space separated list of vehicle type ids to consider (empty to affect all types)");
+        myTagProperties[currentTag].addAttribute(attrProperty);
     }
-    currentTag = SUMO_TAG_FLOW_CALIBRATOR;
+    currentTag = GNE_TAG_FLOW_CALIBRATOR;
     {
         // set values of tag
         myTagProperties[currentTag] = GNETagProperties(currentTag,
@@ -2459,7 +2486,7 @@ GNEAttributeCarrier::fillAdditionals() {
                                               "Edge in which vaporizer is placed");
         myTagProperties[currentTag].addAttribute(attrProperty);
 
-        attrProperty = GNEAttributeProperties(SUMO_ATTR_BEGIN,
+        attrProperty = GNEAttributeProperties(SUMO_ATTR_FROM,
                                               GNEAttributeProperties::SUMOTIME | GNEAttributeProperties::DEFAULTVALUESTATIC,
                                               "Start Time",
                                               "0");

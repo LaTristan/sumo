@@ -32,10 +32,9 @@
 // member method definitions
 // ===========================================================================
 
-GNEDetectorEntryExit::GNEDetectorEntryExit(SumoXMLTag entryExitTag, GNENet* net, GNEAdditional* parent, GNELane* lane, double pos, bool friendlyPos, bool blockMovement) :
-    GNEDetector(parent, net, GLO_DET_ENTRY, entryExitTag, pos, "", "", "", friendlyPos, blockMovement, {
-    lane
-}) {
+GNEDetectorEntryExit::GNEDetectorEntryExit(SumoXMLTag entryExitTag, GNENet* net, GNEAdditional* parent, GNELane* lane, double pos,
+        bool friendlyPos, const std::map<std::string, std::string> &parameters,  bool blockMovement) :
+    GNEDetector(parent, net, GLO_DET_ENTRY, entryExitTag, pos, "", {lane}, "", "", friendlyPos, parameters, blockMovement) {
     // check that this is a Entry/Exit
     if ((entryExitTag != SUMO_TAG_DET_ENTRY) && (entryExitTag != SUMO_TAG_DET_EXIT)) {
         throw InvalidArgument("Invalid E3 Child Tag");
@@ -79,7 +78,7 @@ void
 GNEDetectorEntryExit::fixAdditionalProblem() {
     // declare new position
     double newPositionOverLane = myPositionOverLane;
-    // fix pos and length  checkAndFixDetectorPosition
+    // fix pos and length checkAndFixDetectorPosition
     GNEAdditionalHandler::checkAndFixDetectorPosition(newPositionOverLane, getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), true);
     // set new position
     setAttribute(SUMO_ATTR_POSITION, toString(newPositionOverLane), myNet->getViewNet()->getUndoList());

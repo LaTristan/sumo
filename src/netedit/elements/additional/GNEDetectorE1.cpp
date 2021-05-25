@@ -31,10 +31,9 @@
 // member method definitions
 // ===========================================================================
 
-GNEDetectorE1::GNEDetectorE1(const std::string& id, GNELane* lane, GNENet* net, double pos, SUMOTime freq, const std::string& filename, const std::string& vehicleTypes, const std::string& name, bool friendlyPos, bool blockMovement) :
-    GNEDetector(id, net, GLO_E1DETECTOR, SUMO_TAG_E1DETECTOR, pos, time2string(freq), filename, vehicleTypes, name, friendlyPos, blockMovement, {
-    lane
-}) {
+GNEDetectorE1::GNEDetectorE1(const std::string& id, GNELane* lane, GNENet* net, double pos, SUMOTime freq, const std::string& filename, const std::string& vehicleTypes, 
+        const std::string& name, bool friendlyPos, const std::map<std::string, std::string> &parameters, bool blockMovement) :
+    GNEDetector(id, net, GLO_E1DETECTOR, SUMO_TAG_E1DETECTOR, pos, time2string(freq), {lane}, filename, vehicleTypes, name, friendlyPos, parameters, blockMovement) {
     // update centering boundary without updating grid
     updateCenteringBoundary(false);
 }
@@ -75,7 +74,7 @@ void
 GNEDetectorE1::fixAdditionalProblem() {
     // declare new position
     double newPositionOverLane = myPositionOverLane;
-    // fix pos and length  checkAndFixDetectorPosition
+    // fix pos and length checkAndFixDetectorPosition
     GNEAdditionalHandler::checkAndFixDetectorPosition(newPositionOverLane, getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), true);
     // set new position
     setAttribute(SUMO_ATTR_POSITION, toString(newPositionOverLane), myNet->getViewNet()->getUndoList());
