@@ -35,9 +35,9 @@
 
 GNEParkingArea::GNEParkingArea(const std::string& id, GNELane* lane, GNENet* net, const std::string &startPos, const std::string &endPos,
         const std::string& departPos, const std::string& name, bool friendlyPosition, int roadSideCapacity, bool onRoad, double width, 
-        const std::string& length, double angle, const std::map<std::string, std::string> &parameters, bool blockMovement) :
+        const double length, double angle, const std::map<std::string, std::string> &parameters, bool blockMovement) :
     GNEStoppingPlace(id, net, GLO_PARKING_AREA, SUMO_TAG_PARKING_AREA, lane, startPos, endPos, name, friendlyPosition, parameters, blockMovement),
-    myDepartPos(myDepartPos),
+    myDepartPos(departPos),
     myRoadSideCapacity(roadSideCapacity),
     myOnRoad(onRoad),
     myWidth(width),
@@ -56,9 +56,9 @@ GNEParkingArea::updateGeometry() {
     // Get value of option "lefthand"
     const double offsetSign = OptionsCont::getOptions().getBool("lefthand") ? -1 : 1;
     // calculate spaceDim
-    const double spaceDim = myRoadSideCapacity > 0 ? (getEndPosition() - getStartPosition()) / myRoadSideCapacity * getParentLanes().front()->getLengthGeometryFactor() : 7.5;
+    const double spaceDim = myRoadSideCapacity > 0 ? (getAttributeDouble(SUMO_ATTR_ENDPOS) - getAttributeDouble(SUMO_ATTR_STARTPOS)) / myRoadSideCapacity * getParentLanes().front()->getLengthGeometryFactor() : 7.5;
     // calculate lenght
-    const double length = canParse<double>(myLength) && (parse<double>(myLength) > 0) ? parse<double>(myLength) : spaceDim;
+    const double length = (myLength > 0)? myLength : spaceDim;
     // Update common geometry of stopping place
     setStoppingPlaceGeometry(myWidth);
     // Obtain a copy of the shape
@@ -183,7 +183,7 @@ GNEParkingArea::getAttribute(SumoXMLAttr key) const {
         case SUMO_ATTR_WIDTH:
             return toString(myWidth);
         case SUMO_ATTR_LENGTH:
-            return myLength;
+            return toString(myLength);
         case SUMO_ATTR_ANGLE:
             return toString(myAngle);
         case GNE_ATTR_BLOCK_MOVEMENT:
@@ -242,7 +242,7 @@ GNEParkingArea::isValid(SumoXMLAttr key, const std::string& value) {
             if (value.empty()) {
                 return true;
             } else if (canParse<double>(value)) {
-                return SUMORouteHandler::isStopPosValid(parse<double>(value), getEndPosition(), getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), POSITION_EPS, myFriendlyPosition);
+                return SUMORouteHandler::isStopPosValid(parse<double>(value), getAttributeDouble(SUMO_ATTR_ENDPOS), getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), POSITION_EPS, myFriendlyPosition);
             } else {
                 return false;
             }
@@ -250,7 +250,7 @@ GNEParkingArea::isValid(SumoXMLAttr key, const std::string& value) {
             if (value.empty()) {
                 return true;
             } else if (canParse<double>(value)) {
-                return SUMORouteHandler::isStopPosValid(getStartPosition(), parse<double>(value), getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), POSITION_EPS, myFriendlyPosition);
+                return SUMORouteHandler::isStopPosValid(getAttributeDouble(SUMO_ATTR_STARTPOS), parse<double>(value), getParentLanes().front()->getParentEdge()->getNBEdge()->getFinalLength(), POSITION_EPS, myFriendlyPosition);
             } else {
                 return false;
             }
@@ -365,7 +365,7 @@ GNEParkingArea::setAttribute(SumoXMLAttr key, const std::string& value) {
             updateCenteringBoundary(true);
             break;
         case SUMO_ATTR_LENGTH:
-            myLength = value;
+            myLength = parse<double>(value);
             break;
         case SUMO_ATTR_ANGLE:
             myAngle = parse<double>(value);

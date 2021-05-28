@@ -407,7 +407,7 @@ public:
         bool isAddEdgesWithinEnabled() const;
 
         /// @brief get a map with attributes and their values
-        std::map<SumoXMLAttr, std::string> getAttributesAndValues() const;
+        void getAttributesAndValues() const;
 
         /// @name FOX-callbacks
         /// @{
@@ -532,6 +532,9 @@ public:
     TAZSaveChanges* getTAZSaveChangesModul() const;
 
 protected:
+    /// @brief SumoBaseObject used for creating TAZ
+    CommonXMLStructure::SumoBaseObject* myBaseTAZ;
+
     /**@brief build a shaped element using the drawed shape
      * return true if was sucesfully created
      * @note called when user stop drawing shape

@@ -40,28 +40,32 @@
 // method definitions
 // ===========================================================================
 
-GNEPOI::GNEPOI(GNENet* net, const std::string& id, const std::string& type, const RGBColor& color, const Position& pos,
-        bool geo, double layer, double angle, const std::string& imgFile, bool relativePath, double width, double height, 
-        const std::string &name, const std::map<std::string, std::string> &parameters, bool movementBlocked) :
-    PointOfInterest(id, type, color, pos, geo, "", 0, 0, layer, angle, imgFile, relativePath, width, height),
-    GNEShape(id, net, GLO_POI, SUMO_TAG_POI, 
+GNEPOI::GNEPOI(GNENet* net, const std::string& id, const std::string& type, const RGBColor& color, const double xLon,
+        const double yLat, const bool geo, const double layer, const double angle, const std::string& imgFile, 
+        const bool relativePath, const double width, const double height, const std::string &name, 
+        const std::map<std::string, std::string> &parameters, const bool blockMovement) :
+    PointOfInterest(id, type, color, Position(xLon, yLat), geo, "", 0, 0, layer, angle, imgFile, relativePath, width, height, name, parameters),
+    GNEShape(id, net, GLO_POI, geo? GNE_TAG_POIGEO : SUMO_TAG_POI,
         {}, {}, {}, {}, {}, {}, {}, {},
-        parameters, movementBlocked) {
+    blockMovement) {
+    // update position depending of GEO
+    if (geo) {
+        Position cartesian(x(), y());
+        GeoConvHelper::getFinal().x2cartesian_const(cartesian);
+        set(cartesian.x(), cartesian.y());
+    }
     // update centering boundary without updating grid
     updateCenteringBoundary(false);
-    // set GEO Position
-    myGEOPosition = pos;
-    GeoConvHelper::getFinal().cartesian2geo(myGEOPosition);
 }
 
 
-GNEPOI::GNEPOI(GNENet* net, const std::string& id, const std::string& type, const RGBColor& color, double layer, double angle, 
-        const std::string& imgFile, bool relativePath, GNELane* lane, double posOverLane, double posLat, double width, 
-        double height, const std::string &name, const std::map<std::string, std::string> &parameters, bool movementBlocked) :
-    PointOfInterest(id, type, color, Position(), false, lane->getID(), posOverLane, posLat, layer, angle, imgFile, relativePath, width, height),
-    GNEShape(id, net, GLO_POI, SUMO_TAG_POILANE, 
+GNEPOI::GNEPOI(GNENet* net, const std::string& id, const std::string& type, const RGBColor& color, GNELane* lane, const double posOverLane,
+        const double posLat, const double layer, const double angle, const std::string& imgFile, const bool relativePath, const double width, 
+        const double height, const std::string &name, const std::map<std::string, std::string> &parameters, const bool movementBlocked) :
+    PointOfInterest(id, type, color, Position(), false, lane->getID(), posOverLane, posLat, layer, angle, imgFile, relativePath, width, height, name, parameters),
+    GNEShape(id, net, GLO_POI, GNE_TAG_POILANE,
         {}, {}, {lane}, {}, {}, {}, {}, {},
-        parameters, movementBlocked) {
+        movementBlocked) {
     // update centering boundary without updating grid
     updateCenteringBoundary(false);
 }
@@ -74,7 +78,7 @@ GNEMoveOperation*
 GNEPOI::getMoveOperation(const double /* shapeOffset */) {
     if (myBlockMovement) {
         return nullptr;
-    } else if (getTagProperty().getTag() == SUMO_TAG_POILANE) {
+    } else if (getTagProperty().getTag() == GNE_TAG_POILANE) {
         // return move operation for POI placed over lane
         return new GNEMoveOperation(this, getParentLanes().front(), {myPosOverLane},
                                     myNet->getViewNet()->getViewParent()->getMoveFrame()->getCommonModeOptions()->getAllowChangeLane());
@@ -92,12 +96,8 @@ GNEPOI::removeGeometryPoint(const Position /*clickedPosition*/, GNEUndoList* /*u
 
 
 std::string
-GNEPOI::generateChildID(SumoXMLTag childTag) {
-    int counter = (int)myNet->getAttributeCarriers()->getShapes().at(SUMO_TAG_POI).size();
-    while (myNet->retrieveShape(SUMO_TAG_POI, getID() + toString(childTag) + toString(counter), false) != nullptr) {
-        counter++;
-    }
-    return (getID() + toString(childTag) + toString(counter));
+GNEPOI::generateChildID(SumoXMLTag /*childTag*/) {
+    return "";
 }
 
 
@@ -268,10 +268,20 @@ GNEPOI::getAttribute(SumoXMLAttr key) const {
             }
         case SUMO_ATTR_POSITION_LAT:
             return toString(myPosLat);
-        case SUMO_ATTR_GEOPOSITION:
-            return toString(myGEOPosition, gPrecisionGeo);
-        case SUMO_ATTR_GEO:
-            return toString(myGeo);
+        case SUMO_ATTR_LON: {
+            // calculate geo position
+            Position GEOPosition(x(), y());
+            GeoConvHelper::getFinal().cartesian2geo(GEOPosition);
+            // return lon
+            return toString(GEOPosition.x());
+        }
+        case SUMO_ATTR_LAT: {
+            // calculate geo position
+            Position GEOPosition(x(), y());
+            GeoConvHelper::getFinal().cartesian2geo(GEOPosition);
+            // return lat
+            return toString(GEOPosition.y());
+        }
         case SUMO_ATTR_TYPE:
             return getShapeType();
         case SUMO_ATTR_LAYER:
@@ -290,6 +300,8 @@ GNEPOI::getAttribute(SumoXMLAttr key) const {
             return toString(getHeight());
         case SUMO_ATTR_ANGLE:
             return toString(getShapeNaviDegree());
+        case SUMO_ATTR_NAME:
+            return getShapeName();
         case GNE_ATTR_BLOCK_MOVEMENT:
             return toString(myBlockMovement);
         case GNE_ATTR_SELECTED:
@@ -313,8 +325,8 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value, GNEUndoList* und
         case SUMO_ATTR_LANE:
         case SUMO_ATTR_POSITION:
         case SUMO_ATTR_POSITION_LAT:
-        case SUMO_ATTR_GEOPOSITION:
-        case SUMO_ATTR_GEO:
+        case SUMO_ATTR_LON:
+        case SUMO_ATTR_LAT:
         case SUMO_ATTR_TYPE:
         case SUMO_ATTR_LAYER:
         case SUMO_ATTR_IMGFILE:
@@ -322,6 +334,7 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value, GNEUndoList* und
         case SUMO_ATTR_WIDTH:
         case SUMO_ATTR_HEIGHT:
         case SUMO_ATTR_ANGLE:
+        case SUMO_ATTR_NAME:
         case GNE_ATTR_BLOCK_MOVEMENT:
         case GNE_ATTR_SELECTED:
         case GNE_ATTR_PARAMETERS:
@@ -351,11 +364,10 @@ GNEPOI::isValid(SumoXMLAttr key, const std::string& value) {
             }
         case SUMO_ATTR_POSITION_LAT:
             return canParse<double>(value);
-        case SUMO_ATTR_GEOPOSITION: {
-            return canParse<Position>(value);
-        }
-        case SUMO_ATTR_GEO:
-            return canParse<bool>(value);
+        case SUMO_ATTR_LON:
+            return canParse<double>(value);
+        case SUMO_ATTR_LAT:
+            return canParse<double>(value);
         case SUMO_ATTR_TYPE:
             return true;
         case SUMO_ATTR_LAYER:
@@ -379,6 +391,8 @@ GNEPOI::isValid(SumoXMLAttr key, const std::string& value) {
             return canParse<double>(value) && (parse<double>(value) > 0);
         case SUMO_ATTR_ANGLE:
             return canParse<double>(value);
+        case SUMO_ATTR_NAME:
+            return SUMOXMLDefinitions::isValidAttribute(value);
         case GNE_ATTR_BLOCK_MOVEMENT:
             return canParse<bool>(value);
         case GNE_ATTR_SELECTED:
@@ -436,11 +450,6 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value) {
             } else {
                 // set position
                 set(parse<Position>(value));
-                // set GEO Position
-                myGEOPosition.setx(this->x());
-                myGEOPosition.sety(this->y());
-                myGEOPosition.setz(this->z());
-                GeoConvHelper::getFinal().cartesian2geo(myGEOPosition);
             }
             // update centering boundary
             updateCenteringBoundary(true);
@@ -451,19 +460,26 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value) {
             // update centering boundary
             updateCenteringBoundary(true);
             break;
-        case SUMO_ATTR_GEOPOSITION: {
-            // set new position
-            myGEOPosition = parse<Position>(value);
-            // set cartesian Position
-            set(myGEOPosition);
-            GeoConvHelper::getFinal().x2cartesian_const(*this);
+        case SUMO_ATTR_LON: {
+            // calculate cartesian
+            Position cartesian(parse<double>(value), parse<double>(getAttribute(SUMO_ATTR_LAT)));
+            GeoConvHelper::getFinal().x2cartesian_const(cartesian);
+            // set cartesian
+            set(cartesian);
             // update centering boundary
             updateCenteringBoundary(true);
             break;
         }
-        case SUMO_ATTR_GEO:
-            myGeo = parse<bool>(value);
+        case SUMO_ATTR_LAT: {
+            // calculate cartesian
+            Position cartesian(parse<double>(getAttribute(SUMO_ATTR_LON)), parse<double>(value));
+            GeoConvHelper::getFinal().x2cartesian_const(cartesian);
+            // set cartesian
+            set(cartesian);
+            // update centering boundary
+            updateCenteringBoundary(true);
             break;
+        }
         case SUMO_ATTR_TYPE:
             setShapeType(value);
             break;
@@ -501,6 +517,9 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value) {
         case SUMO_ATTR_ANGLE:
             setShapeNaviDegree(parse<double>(value));
             break;
+        case SUMO_ATTR_NAME:
+            setShapeName(value);
+            break;
         case GNE_ATTR_BLOCK_MOVEMENT:
             myBlockMovement = parse<bool>(value);
             break;
@@ -523,7 +542,7 @@ GNEPOI::setAttribute(SumoXMLAttr key, const std::string& value) {
 void
 GNEPOI::setMoveShape(const GNEMoveResult& moveResult) {
     // set geometry
-    if (getTagProperty().getTag() == SUMO_TAG_POILANE) {
+    if (getTagProperty().getTag() == GNE_TAG_POILANE) {
         myPosOverLane = moveResult.shapeToUpdate.front().x();
     } else {
         set(moveResult.shapeToUpdate.front());
@@ -535,7 +554,7 @@ GNEPOI::setMoveShape(const GNEMoveResult& moveResult) {
 void
 GNEPOI::commitMoveShape(const GNEMoveResult& moveResult, GNEUndoList* undoList) {
     undoList->p_begin("position of " + getTagStr());
-    if (getTagProperty().getTag() == SUMO_TAG_POILANE) {
+    if (getTagProperty().getTag() == GNE_TAG_POILANE) {
         undoList->p_add(new GNEChange_Attribute(this, SUMO_ATTR_POSITION, toString(moveResult.shapeToUpdate.front().x())));
     } else {
         undoList->p_add(new GNEChange_Attribute(this, SUMO_ATTR_POSITION, toString(moveResult.shapeToUpdate.front())));

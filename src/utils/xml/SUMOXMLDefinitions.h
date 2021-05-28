@@ -47,12 +47,10 @@ enum SumoXMLTag {
     SUMO_TAG_LANE,
     /// @brief begin/end of the description of a neighboring lane
     SUMO_TAG_NEIGH,
-    /// @brief begin/end of the description of a Point of interest
-    SUMO_TAG_POI,
-    /// @brief begin/end of the description of a Point of interest over Lane (used by Netedit)
-    SUMO_TAG_POILANE,
     /// @brief begin/end of the description of a polygon
     SUMO_TAG_POLY,
+    /// @brief begin/end of the description of a Point of interest
+    SUMO_TAG_POI,
     /// @brief begin/end of the description of a junction
     SUMO_TAG_JUNCTION,
     /// @brief begin/end of the description of an edge restriction
@@ -65,6 +63,8 @@ enum SumoXMLTag {
     SUMO_TAG_INDUCTION_LOOP,
     /// @brief an e2 detector
     SUMO_TAG_E2DETECTOR,
+    /// @brief an e2 detector over multiple lanes (placed here due create Additional Frame)
+    GNE_TAG_E2DETECTOR_MULTILANE,
     /// @brief alternative tag for e2 detector
     SUMO_TAG_LANE_AREA_DETECTOR,
     /// @brief an e3 detector
@@ -379,12 +379,14 @@ enum SumoXMLTag {
 
     /// @name NETEDIT elements
     /// @{
-    /// @brief an e2 detector over multiple lanes
-    GNE_TAG_E2DETECTOR_MULTILANE,
     /// @brief internal lane
     GNE_TAG_INTERNAL_LANE,
-    /// @brief a flow definition within in Calibrator (used in NETEDIT)
+    /// @brief a flow definition within in Calibrator
     GNE_TAG_FLOW_CALIBRATOR,
+    /// @brief Point of interest over Lane
+    GNE_TAG_POILANE,
+    /// @brief Point of interest over view with GEO attributes
+    GNE_TAG_POIGEO,
     /// @brief Rerouter Symbol
     GNE_TAG_REROUTER_SYMBOL,
     /// @brief VSS Symbol
@@ -531,6 +533,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_REQUEST,
     SUMO_ATTR_RESPONSE,
     SUMO_ATTR_PROGRAMID,
+    SUMO_ATTR_PHASE,
     SUMO_ATTR_OFFSET,
     SUMO_ATTR_ENDOFFSET,
     SUMO_ATTR_INCLANES,
@@ -1016,7 +1019,6 @@ enum SumoXMLAttr {
     SUMO_ATTR_LAT,
     SUMO_ATTR_GEO,
     SUMO_ATTR_GEOSHAPE,
-    SUMO_ATTR_GEOPOSITION,
     SUMO_ATTR_K,
     SUMO_ATTR_V,
     SUMO_ATTR_REF,

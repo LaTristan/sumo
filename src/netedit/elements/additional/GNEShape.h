@@ -62,10 +62,10 @@ public:
              const std::vector<GNETAZElement*>& TAZElementParents,
              const std::vector<GNEDemandElement*>& demandElementParents,
              const std::vector<GNEGenericData*>& genericDataParents,
-             const std::map<std::string, std::string> &parameters, bool movementBlocked);
+             bool movementBlocked);
 
     /// @brief Destructor
-    virtual ~GNEShape();
+    ~GNEShape();
 
     /**@brief get move operation for the given shapeOffset
     * @note returned GNEMoveOperation can be nullptr

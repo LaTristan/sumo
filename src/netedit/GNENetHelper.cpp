@@ -42,28 +42,28 @@ GNENetHelper::AttributeCarriers::AttributeCarriers(GNENet* net) :
     myNet(net),
     myAllowUndoShapes(true) {
     // fill additionals with tags
-    auto additionalTags = GNEAttributeCarrier::getAllowedTagsByCategory(GNETagProperties::TagType::ADDITIONALELEMENT | GNETagProperties::TagType::SYMBOL, false);
+    auto additionalTags = GNEAttributeCarrier::getAllowedTagPropertiesByCategory(GNETagProperties::TagType::ADDITIONALELEMENT | GNETagProperties::TagType::SYMBOL, false);
     for (const auto& additionalTag : additionalTags) {
-        myAdditionals.insert(std::make_pair(additionalTag.first, std::map<std::string, GNEAdditional*>()));
+        myAdditionals.insert(std::make_pair(additionalTag.first.getTag(), std::map<std::string, GNEAdditional*>()));
     }
     // fill shapes with tags
-    auto shapeTags = GNEAttributeCarrier::getAllowedTagsByCategory(GNETagProperties::TagType::SHAPE, false);
+    auto shapeTags = GNEAttributeCarrier::getAllowedTagPropertiesByCategory(GNETagProperties::TagType::SHAPE, false);
     for (const auto& shapeTag : shapeTags) {
-        myShapes.insert(std::make_pair(shapeTag.first, std::map<std::string, GNEShape*>()));
+        myShapes.insert(std::make_pair(shapeTag.first.getXMLTag(), std::map<std::string, GNEShape*>()));
     }
     // fill TAZElements with tags
-    auto TAZElementTags = GNEAttributeCarrier::getAllowedTagsByCategory(GNETagProperties::TagType::TAZELEMENT, false);
+    auto TAZElementTags = GNEAttributeCarrier::getAllowedTagPropertiesByCategory(GNETagProperties::TagType::TAZELEMENT, false);
     for (const auto& TAZElementTag : TAZElementTags) {
-        myTAZElements.insert(std::make_pair(TAZElementTag.first, std::map<std::string, GNETAZElement*>()));
+        myTAZElements.insert(std::make_pair(TAZElementTag.first.getTag(), std::map<std::string, GNETAZElement*>()));
     }
     // fill demand elements with tags
-    auto demandElementTags = GNEAttributeCarrier::getAllowedTagsByCategory(GNETagProperties::TagType::DEMANDELEMENT, false);
+    auto demandElementTags = GNEAttributeCarrier::getAllowedTagPropertiesByCategory(GNETagProperties::TagType::DEMANDELEMENT, false);
     for (const auto& demandElementTag : demandElementTags) {
-        myDemandElements.insert(std::make_pair(demandElementTag.first, std::map<std::string, GNEDemandElement*>()));
+        myDemandElements.insert(std::make_pair(demandElementTag.first.getTag(), std::map<std::string, GNEDemandElement*>()));
     }
-    auto stopTags = GNEAttributeCarrier::getAllowedTagsByCategory(GNETagProperties::TagType::STOP, false);
+    auto stopTags = GNEAttributeCarrier::getAllowedTagPropertiesByCategory(GNETagProperties::TagType::STOP, false);
     for (const auto& stopTag : stopTags) {
-        myDemandElements.insert(std::make_pair(stopTag.first, std::map<std::string, GNEDemandElement*>()));
+        myDemandElements.insert(std::make_pair(stopTag.first.getTag(), std::map<std::string, GNEDemandElement*>()));
     }
 }
 
@@ -245,71 +245,17 @@ void GNENetHelper::AttributeCarriers::clearEdges() {
 
 
 bool
-GNENetHelper::AttributeCarriers::addPolygon(const std::string& id, const std::string& type, const RGBColor& color, double layer, double angle,
-        const std::string& imgFile, bool relativePath, const PositionVector& shape, bool geo, bool fill, double lineWidth, bool /*ignorePruning*/) {
-    // check if ID is duplicated
-    if (myShapes.at(SUMO_TAG_POLY).count(id) == 0) {
-        // create poly
-        GNEPoly* poly = new GNEPoly(myNet, id, type, shape, geo, fill, lineWidth, color, layer, angle, imgFile, relativePath, "", std::map<std::string, std::string>(), false, false);
-        if (myAllowUndoShapes) {
-            myNet->getViewNet()->getUndoList()->p_begin("add " + toString(SUMO_TAG_POLY));
-            myNet->getViewNet()->getUndoList()->add(new GNEChange_Shape(poly, true), true);
-            myNet->getViewNet()->getUndoList()->p_end();
-        } else {
-            // insert shape without allowing undo/redo
-            insertShape(poly);
-            poly->incRef("addPolygon");
-        }
-        return true;
-    } else {
-        return false;
-    }
+GNENetHelper::AttributeCarriers::addPolygon(const std::string& /*id*/, const std::string& /*type*/, const RGBColor& /*color*/, double /*layer*/, double /*angle*/,
+    const std::string& /*imgFile*/, bool /*relativePath*/, const PositionVector& /*shape*/, bool /*geo*/, bool /*fill*/, double /*lineWidth*/, bool /*ignorePruning*/) {
+    return false;
 }
 
 
 bool
-GNENetHelper::AttributeCarriers::addPOI(const std::string& id, const std::string& type, const RGBColor& color, const Position& pos, bool geo,
-                                        const std::string& lane, double posOverLane, double posLat, double layer, double angle,
-                                        const std::string& imgFile, bool relativePath, double width, double height, bool /*ignorePruning*/) {
-    // check if ID is duplicated
-    if (myShapes.at(SUMO_TAG_POI).count(id) == 0) {
-        // create POI or POILane depending of parameter lane
-        if (lane.empty()) {
-            // create POI
-            GNEPOI* POI = new GNEPOI(myNet, id, type, color, pos, geo, layer, angle, imgFile, relativePath, width, height, "", std::map<std::string, std::string>(), false);
-            if (myAllowUndoShapes) {
-                myNet->getViewNet()->getUndoList()->p_begin("add " + POI->getTagStr());
-                myNet->getViewNet()->getUndoList()->add(new GNEChange_Shape(POI, true), true);
-                myNet->getViewNet()->getUndoList()->p_end();
-            } else {
-                // insert shape without allowing undo/redo
-                insertShape(POI);
-                POI->incRef("addPOI");
-            }
-            return true;
-        } else {
-            // create POI over lane
-            GNELane* retrievedLane = myNet->retrieveLane(lane, false);
-            if (retrievedLane == nullptr) {
-                WRITE_ERROR("invalid lane to use within POI " + id);
-            } else {
-                GNEShape* POILane = new GNEPOI(myNet, id, type, color, layer, angle, imgFile, relativePath, retrievedLane, posOverLane, posLat, width, height, "", std::map<std::string, std::string>(), false);
-                if (myAllowUndoShapes) {
-                    myNet->getViewNet()->getUndoList()->p_begin("add " + POILane->getTagStr());
-                    myNet->getViewNet()->getUndoList()->add(new GNEChange_Shape(POILane, true), true);
-                    myNet->getViewNet()->getUndoList()->p_end();
-                } else {
-                    // insert shape without allowing undo/redo
-                    insertShape(POILane);
-                    retrievedLane->addChildElement(POILane);
-                    POILane->incRef("addPOILane");
-                }
-            }
-            return true;
-        }
-    } else {
-        return false;
-    }
+GNENetHelper::AttributeCarriers::addPOI(const std::string& /*id*/, const std::string& /*type*/, const RGBColor& /*color*/, const Position& /*pos*/, bool /*geo*/,
+    const std::string& /*lane*/, double /*posOverLane*/, double /*posLat*/, double /*layer*/, double /*angle*/, const std::string& /*imgFile*/, bool /*relativePath*/,
+    double /*width*/, double /*height*/, bool /*ignorePruning*/) {
+    return false;
 }
 
 
@@ -707,11 +653,9 @@ GNENetHelper::AttributeCarriers::updateAdditionalID(GNEAttributeCarrier* AC, con
 
 bool
 GNENetHelper::AttributeCarriers::shapeExist(const GNEShape* shape) const {
-    // get tag (due POIs)
-    SumoXMLTag shapeTag = (shape->getTagProperty().getTag() == SUMO_TAG_POILANE) ? SUMO_TAG_POI : shape->getTagProperty().getTag();
     // first check that shape pointer is valid
     if (shape) {
-        return myShapes.at(shapeTag).find(shape->getID()) != myShapes.at(shapeTag).end();
+        return myShapes.at(shape->getTagProperty().getXMLTag()).find(shape->getID()) != myShapes.at(shape->getTagProperty().getXMLTag()).end();
     } else {
         throw ProcessError("Invalid shape pointer");
     }
@@ -720,11 +664,9 @@ GNENetHelper::AttributeCarriers::shapeExist(const GNEShape* shape) const {
 
 void
 GNENetHelper::AttributeCarriers::insertShape(GNEShape* shape) {
-    // get tag (due POIs)
-    SumoXMLTag shapeTag = (shape->getTagProperty().getTag() == SUMO_TAG_POILANE) ? SUMO_TAG_POI : shape->getTagProperty().getTag();
     // Check if shape element exists before insertion
     if (!shapeExist(shape)) {
-        myShapes.at(shapeTag).insert(std::make_pair(shape->getID(), shape));
+        myShapes.at(shape->getTagProperty().getXMLTag()).insert(std::make_pair(shape->getID(), shape));
         // add element in grid
         myNet->addGLObjectIntoGrid(shape);
         // update geometry after insertion of shapes if myUpdateGeometryEnabled is enabled
@@ -741,16 +683,14 @@ GNENetHelper::AttributeCarriers::insertShape(GNEShape* shape) {
 
 void
 GNENetHelper::AttributeCarriers::deleteShape(GNEShape* shape) {
-    // get tag (due POIs)
-    SumoXMLTag shapeTag = (shape->getTagProperty().getTag() == SUMO_TAG_POILANE) ? SUMO_TAG_POI : shape->getTagProperty().getTag();
     // first check that shape pointer is valid
     if (shapeExist(shape)) {
         // remove it from inspected elements and HierarchicalElementTree
         myNet->getViewNet()->removeFromAttributeCarrierInspected(shape);
         myNet->getViewNet()->getViewParent()->getInspectorFrame()->getHierarchicalElementTree()->removeCurrentEditedAttributeCarrier(shape);
         // obtain demand element and erase it from container
-        auto it = myShapes.at(shapeTag).find(shape->getID());
-        myShapes.at(shapeTag).erase(it);
+        auto it = myShapes.at(shape->getTagProperty().getXMLTag()).find(shape->getID());
+        myShapes.at(shape->getTagProperty().getXMLTag()).erase(it);
         // remove element from grid
         myNet->removeGLObjectFromGrid(shape);
         // shapes has to be saved
@@ -763,22 +703,20 @@ GNENetHelper::AttributeCarriers::deleteShape(GNEShape* shape) {
 
 void
 GNENetHelper::AttributeCarriers::updateShapeID(GNEAttributeCarrier* AC, const std::string& newID) {
-    // get tag (due POIs)
-    SumoXMLTag shapeTag = (AC->getTagProperty().getTag() == SUMO_TAG_POILANE) ? SUMO_TAG_POI : AC->getTagProperty().getTag();
-    // continue
-    if (myShapes.at(shapeTag).count(AC->getID()) == 0) {
+    // check conditions
+    if (myShapes.at(AC->getTagProperty().getXMLTag()).count(AC->getID()) == 0) {
         throw ProcessError(AC->getTagStr() + " with ID='" + AC->getID() + "' doesn't exist in AttributeCarriers.shapes");
-    } else if (myShapes.at(shapeTag).count(newID) != 0) {
+    } else if (myShapes.at(AC->getTagProperty().getXMLTag()).count(newID) != 0) {
         throw ProcessError("There is another " + AC->getTagStr() + " with new ID='" + newID + "' in AttributeCarriers.shapes");
     } else {
         // retrieve shape
-        GNEShape* shape = myShapes.at(shapeTag).at(AC->getID());
+        GNEShape* shape = myShapes.at(AC->getTagProperty().getXMLTag()).at(AC->getID());
         // remove shape from container
-        myShapes.at(shapeTag).erase(shape->getID());
+        myShapes.at(AC->getTagProperty().getXMLTag()).erase(shape->getID());
         // set new ID in shape
         shape->getGUIGlObject()->setMicrosimID(newID);
         // insert shape again in container
-        myShapes.at(shapeTag).insert(std::make_pair(shape->getID(), shape));
+        myShapes.at(AC->getTagProperty().getXMLTag()).insert(std::make_pair(shape->getID(), shape));
         // shapes has to be saved
         myNet->requireSaveAdditionals(true);
     }

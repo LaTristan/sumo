@@ -569,13 +569,6 @@ GNESelectorFrame::SelectionOperation::onCmdInvert(FXObject*, FXSelector, void*) 
                         POI.second->setAttribute(GNE_ATTR_SELECTED, "true", undoList);
                     }
                 }
-                for (const auto& POILane : mySelectorFrameParent->myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POILANE)) {
-                    if (POILane.second->isAttributeCarrierSelected()) {
-                        POILane.second->setAttribute(GNE_ATTR_SELECTED, "false", undoList);
-                    } else {
-                        POILane.second->setAttribute(GNE_ATTR_SELECTED, "true", undoList);
-                    }
-                }
             }
         } else if (mySelectorFrameParent->myViewNet->getEditModes().isCurrentSupermodeDemand()) {
             // invert routes
@@ -943,11 +936,6 @@ GNESelectorFrame::clearCurrentSelection() const {
                 for (const auto& POI : myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POI)) {
                     if (POI.second->isAttributeCarrierSelected()) {
                         POI.second->setAttribute(GNE_ATTR_SELECTED, "false", myViewNet->getUndoList());
-                    }
-                }
-                for (const auto& POILane : myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POILANE)) {
-                    if (POILane.second->isAttributeCarrierSelected()) {
-                        POILane.second->setAttribute(GNE_ATTR_SELECTED, "false", myViewNet->getUndoList());
                     }
                 }
             }
@@ -1383,13 +1371,12 @@ GNESelectorFrame::ACsToSelected() const {
         }
         // check polygons
         if (!myLockGLObjectTypes->IsObjectTypeLocked(GLO_POLYGON) &&
-                (myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POLY).size() > 0)) {
+                (myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POI).size() > 0)) {
             return true;
         }
         // check POIs
-        if (!myLockGLObjectTypes->IsObjectTypeLocked(GLO_POI) &&
-                ((myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POI).size() > 0) ||
-                 (myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POILANE).size() > 0))) {
+        if (!myLockGLObjectTypes->IsObjectTypeLocked(GLO_POI) && 
+             (myViewNet->getNet()->getAttributeCarriers()->getShapes().at(SUMO_TAG_POI).size() > 0)) {
             return true;
         }
     } else if (myViewNet->getEditModes().isCurrentSupermodeDemand()) {
